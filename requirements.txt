@@ -1,0 +1,2 @@
+pybamm==26.8.*
+matplotlib

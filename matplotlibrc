@@ -1,0 +1,20 @@
+# Shared figure style, picked up automatically when the scripts run from this folder.
+figure.facecolor: white
+figure.dpi: 110
+savefig.dpi: 200
+savefig.bbox: tight
+font.size: 10
+axes.spines.top: False
+axes.spines.right: False
+axes.edgecolor: c3c2b7
+axes.labelcolor: 0b0b0b
+axes.titlesize: 11
+axes.titlelocation: left
+axes.grid: True
+grid.color: e1e0d9
+grid.linewidth: 0.6
+xtick.color: 52514e
+ytick.color: 52514e
+legend.frameon: False
+lines.linewidth: 2
+lines.markersize: 6
