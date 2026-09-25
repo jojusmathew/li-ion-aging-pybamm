@@ -36,8 +36,8 @@ def plating_check(T_celsius, cycles=20):
     experiment = pybamm.Experiment([("Charge at 0.3C for 30 minutes", "Discharge at 1C for 9 minutes")] * cycles)
     sol = pybamm.Simulation(model, parameter_values=params, experiment=experiment).solve(initial_soc=0.70)
     plated = [c["Loss of lithium to negative lithium plating [mol]"].entries[-1] for c in sol.cycles]
-    # ponytail: extrapolates the settled per-cycle loss (second half of the run) to all cycles of the test;
-    # simulate every cycle if plating turns out to matter
+    # Assumes the settled per-cycle loss (second half of the run) stays constant over all cycles of the test;
+    # simulating every cycle would be needed if plating turned out to matter.
     half = cycles // 2
     per_cycle = (plated[-1] - plated[half - 1]) / (cycles - half)
     lost = 100 * per_cycle * fit["cycles"] / sol["Total lithium in particles [mol]"].entries[0]

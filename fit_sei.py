@@ -24,8 +24,8 @@ COLORS = {10: "#2a78d6", 25: "#1baf7a", 40: "#eb6834"}  # chamber temperature ->
 # SEI growth limited by solvent diffusion through the SEI: rate = D * c_solvent / thickness, times an Arrhenius
 # factor exp(E/R * (1/298.15 K - 1/T)). The rate does not depend on the current, so ageing by cycling equals
 # storage for the same time at the same temperature; self_check() verifies this.
-# ponytail: exact only for this current-independent SEI model; potential-dependent SEI models need the
-# real cycling protocol simulated.
+# This shortcut holds only for current-independent SEI models; potential-dependent ones need the real cycling
+# protocol simulated.
 model = pybamm.lithium_ion.SPM({"SEI": "solvent-diffusion limited"})
 params = pybamm.ParameterValues("OKane2022")  # LG M50 cell, O'Kane et al. 2022
 params.update({"Current function [A]": 0, D_KEY: "[input]", E_KEY: "[input]", T_KEY: "[input]"})
@@ -105,8 +105,8 @@ def plot_fit(x, cells):
     fig.savefig(HERE / "results" / "lli_fit.png")
 
 
-def plot_temperature(x, cells, T_grid, lli_grid):
-    fig, ax = plt.subplots(figsize=(6.4, 4))
+def plot_temperature(cells, T_grid, lli_grid):
+    fig, ax = plt.subplots(figsize=(6.4, 4.4))
     ax.plot(T_grid, lli_grid, color="#52514e", label="SEI-only model (Arrhenius), fitted at 25/40 °C")
     for chamber in (10, 25, 40):
         group = [c for c in cells if c["chamber"] == chamber]
@@ -115,13 +115,14 @@ def plot_temperature(x, cells, T_grid, lli_grid):
     cold = [c for c in cells if c["chamber"] == 10]
     T_cold = np.mean([c["T"] for c in cold])
     measured, predicted = np.mean([c["lli"][-1] for c in cold]), np.interp(T_cold, T_grid, lli_grid)
-    ax.annotate("", xy=(T_cold, measured), xytext=(T_cold, predicted),
+    x_arrow = T_cold - 1.5  # beside the two cold cells rather than on top of them
+    ax.annotate("", xy=(x_arrow, measured), xytext=(x_arrow, np.interp(x_arrow, T_grid, lli_grid)),
                 arrowprops={"arrowstyle": "->", "color": "#0b0b0b", "lw": 1.2})
-    ax.text(T_cold - 1, (measured + predicted) / 2, f"+{measured - predicted:.1f} %-points\nnot explained by SEI",
+    ax.text(x_arrow - 0.8, (measured + predicted) / 2, f"+{measured - predicted:.1f} %-points\nnot explained by SEI",
             ha="right", va="center", color="#0b0b0b")
     ax.set(xlabel="Cell temperature during cycling [°C]", ylabel="LLI after 258 days [%]")
     ax.set_title("Cold cells age faster than the SEI model predicts")
-    ax.legend(loc="upper left")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=2)
     fig.savefig(HERE / "results" / "lli_vs_temperature.png")
 
 
@@ -153,7 +154,7 @@ if __name__ == "__main__":
     print(f"10 degC cells: {gap:.1f} %-points more LLI than the SEI model predicts")
 
     plot_fit(x, cells)
-    plot_temperature(x, cells, T_grid, lli_grid)
+    plot_temperature(cells, T_grid, lli_grid)
     chamber_T = {ch: np.mean([c["T"] for c in cells if c["chamber"] == ch]) for ch in (10, 25, 40)}
     json.dump({"log10_D": x[0], "Ea_kJ_mol": x[1], "chamber_T": chamber_T, "cold_gap_pct": gap,
                "cycles": test[0]["cycles"]},

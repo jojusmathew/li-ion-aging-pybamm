@@ -83,11 +83,13 @@ Each cell of the map gives the SoC at which a constant-current charge from 10 % 
 - **SEI growth law.**
   - The SEI current density is
 
-    $$j_\mathrm{SEI} = -\frac{D_\mathrm{sol}\,c_\mathrm{sol}\,F}{L_\mathrm{SEI}}\,\exp\left[\frac{E_a}{R}\left(\frac{1}{T_\mathrm{ref}}-\frac{1}{T}\right)\right]$$
+    ```math
+    j_\mathrm{SEI} = -\frac{D_\mathrm{sol}\,c_\mathrm{sol}\,F}{L_\mathrm{SEI}}\,\exp\left[\frac{E_a}{R}\left(\frac{1}{T_\mathrm{ref}}-\frac{1}{T}\right)\right]
+    ```
 
   - Because the rate is inversely proportional to the film thickness $L_\mathrm{SEI}$, the film grows (and consumes lithium) as $\sqrt{t}$.
 - **Cycling as storage.**
-  - $j_\mathrm{SEI}$ does not depend on the current, so 6,204 cycles age this model exactly like 258 days of storage at the same temperature. Each fit evaluation therefore takes a fraction of a second instead of simulating every cycle.
+  - $j_\mathrm{SEI}$ does not depend on the current, so 6,204 cycles age this model exactly like 258 days of storage at the same temperature. The fit therefore simulates storage instead of every cycle.
   - [`fit_sei.py`](fit_sei.py) asserts this against 20 simulated cycles; both give 0.3512 % LLI.
 - **Parameter identification.**
   - `scipy.optimize.least_squares` on log₁₀ $D_\mathrm{sol}$ and $E_a$, against 48 LLI check-ups from the 25 and 40 °C chambers.
@@ -120,15 +122,17 @@ Each cell of the map gives the SoC at which a constant-current charge from 10 % 
 - **Add the other SoC windows** (0–30 %, 85–100 %). This needs a potential-dependent SEI model and a simulation of the actual cycling.
 - **Resolve the anode.** Model graphite and silicon as separate phases with PyBaMM's composite-electrode option.
 
-## Run it
+## Reproduce the results
+
+Requires Python 3.10–3.14.
 
 ```bash
-uv venv && uv pip install -r requirements.txt   # or: python -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python fit_sei.py       # ~5 s: fit, validation, figures 1-2
-.venv/bin/python plating_map.py   # ~10 s: plating check, fast-charge map
+pip install -r requirements.txt
+python fit_sei.py       # SEI fit and validation, figures 1 and 2
+python plating_map.py   # plating check and fast-charging map, figure 3
 ```
 
-The six data files are included in [`data/`](data). [`get_data.py`](get_data.py) downloads them again from Zenodo using HTTP range requests, so the 6.5 GB archive is never downloaded in full.
+The data files are included in [`data/`](data); [`get_data.py`](get_data.py) downloads them again from Zenodo.
 
 ## Data and references
 
